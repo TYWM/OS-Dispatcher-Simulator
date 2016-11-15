@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package os.dispatcher.simulator;
 
 /**
@@ -11,11 +6,31 @@ package os.dispatcher.simulator;
  */
 public class OSDispatcherSimulator {
 
+    //Add container for processes
+    
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        int pidCounter = 10;
+        
         // TODO code application logic here
+    }
+    
+    public void initialization(){
+        //Add a set of 3 or so proccesses for the inital state
+    }
+    
+    public void killProcess(int pid){
+        
+    }
+    
+    public void blockProcess(int pid){
+        
+    }
+    
+    public void resumeProcess(int pid){
+        
     }
     
 }
