@@ -34,6 +34,16 @@ public class Process implements Comparable{
         this.status = status;
     }
     
+    /**
+     * Copy constructor
+     * @param other The Process to copy
+     */
+    public Process(Process other){
+        this.pid = other.pid;
+        this.priority = other.priority;
+        this.status = other.status;
+    }
+    
     @Override
     public boolean equals(Object ob){
         if(ob == null) return false;
@@ -65,18 +75,7 @@ public class Process implements Comparable{
     
     public ProcessStatus getStatus() {return this.status;}
     
+    public void setStatus(ProcessStatus status) {this.status = status;}
+    
 
 }
-
-class PidSort implements Comparator<Process>{
-    
-    @Override
-    public int compare(Process p1, Process p2){
-        if(p1.getPid() == p2.getPid())
-            return 0;
-        else if(p1.getPid() < p2.getPid())
-            return 1;
-        else return -1;
-    }
-}
-    

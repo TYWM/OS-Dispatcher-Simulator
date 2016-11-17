@@ -1,12 +1,9 @@
 package os.dispatcher.simulator;
 
-import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Vector;
 import java.util.ArrayList;
-import java.util.Locale;
 import javax.swing.JOptionPane;
-import javax.swing.text.NumberFormatter;
 import javax.swing.table.*;
 
 /**
@@ -21,7 +18,7 @@ public class Dispatcher extends javax.swing.JFrame {
     private Process running;
 
     /**
-     * Creates new form SimulatorUI
+     * Default constructor
      */
     public Dispatcher() {
         initComponents();
@@ -33,7 +30,8 @@ public class Dispatcher extends javax.swing.JFrame {
         initialSet();
         drawTable();
     }
-
+    
+    //Generated JFrame code from NetBeans' form editor
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -90,8 +88,18 @@ public class Dispatcher extends javax.swing.JFrame {
         jControlLabel.setText("Controls");
 
         jBlockProcess.setText("Block Selected");
+        jBlockProcess.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBlockProcessActionPerformed(evt);
+            }
+        });
 
         jUnblockProcess.setText("Unblock Selected");
+        jUnblockProcess.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jUnblockProcessActionPerformed(evt);
+            }
+        });
 
         jKillProcess.setText("Kill Selected");
         jKillProcess.addActionListener(new java.awt.event.ActionListener() {
@@ -145,9 +153,9 @@ public class Dispatcher extends javax.swing.JFrame {
                                         .addComponent(jProcessAdd))
                                     .addComponent(jLabel1))
                                 .addGap(170, 170, 170)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jBlockProcess, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jUnblockProcess)))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jBlockProcess, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jUnblockProcess, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(48, 48, 48)
                                 .addComponent(jProcessAddLabel)))
@@ -233,8 +241,10 @@ public class Dispatcher extends javax.swing.JFrame {
         //Remove the process from ArrayList
         switch(status){
             case RUNNING:
-                //TODO properly update the table with the new running
-                running = contextSwitch(); //Or highest priority ready process
+                running = null;
+                running = contextSwitch();
+                reDrawTable();
+                break;
                           
             case READY:
                 for (Process p : ready) {
@@ -255,7 +265,7 @@ public class Dispatcher extends javax.swing.JFrame {
                 break;
                 
             default: 
-                System.err.println("Invalid status");
+                System.err.println("Invalid status"); //Shouldn't ever be the case.
                 break;
         }
     }//GEN-LAST:event_jKillProcessActionPerformed
@@ -310,6 +320,60 @@ public class Dispatcher extends javax.swing.JFrame {
     }//GEN-LAST:event_jExitActionPerformed
 
     /**
+     * Blocks the selected process.
+     * @param evt The button press from the UI.
+     */
+    private void jBlockProcessActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBlockProcessActionPerformed
+        DefaultTableModel model = (DefaultTableModel) this.jTable1.getModel();
+        int row = jTable1.getSelectedRow();
+        Vector rowData = (Vector)model.getDataVector().elementAt(row);
+        
+        //If blocking the running process, simply context switch
+        if((ProcessStatus)rowData.elementAt(2) == ProcessStatus.RUNNING){
+            running = contextSwitch();
+        }
+        
+        //Otherwise move the selected process to the blocked list
+        else{
+            int targetPid = (int)rowData.elementAt(0);
+            for (Process p : ready) {
+                if(p.getPid() == targetPid){
+                    p.setStatus(ProcessStatus.BLOCKED);
+                    blocked.add(p);
+                    ready.remove(p);
+                    break;
+                }
+            }
+        }
+        reDrawTable();
+    }//GEN-LAST:event_jBlockProcessActionPerformed
+    
+    /**
+     * Resumes the currently selected blocked process.
+     * @param evt The button press from the UI.
+     */
+    private void jUnblockProcessActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jUnblockProcessActionPerformed
+        DefaultTableModel model = (DefaultTableModel) this.jTable1.getModel();
+        int row = jTable1.getSelectedRow();
+        Vector rowData = (Vector)model.getDataVector().elementAt(row);
+
+        if((ProcessStatus)rowData.elementAt(2) == ProcessStatus.BLOCKED){
+            int targetPid = (int)rowData.elementAt(0);
+            for (Process p : blocked) {
+                if(p.getPid() == targetPid){
+                    p.setStatus(ProcessStatus.READY);
+                    ready.add(p);
+                    blocked.remove(p);
+                    break;
+                }
+            }
+        }
+        if(running == null)
+            running = contextSwitch();
+        reDrawTable();
+    }//GEN-LAST:event_jUnblockProcessActionPerformed
+
+    /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
@@ -336,10 +400,8 @@ public class Dispatcher extends javax.swing.JFrame {
         //</editor-fold>
         
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Dispatcher().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new Dispatcher().setVisible(true);
         });
     }
     
@@ -373,7 +435,7 @@ public class Dispatcher extends javax.swing.JFrame {
         jTable1.setModel(model);
         Object[] row = new Object[3];
         row[0] = process.getPid();
-        row[1] = process.getPriority();
+        row[1] = "Running";
         row[2] = process.getStatus();
         model.addRow(row);
     }
@@ -383,10 +445,17 @@ public class Dispatcher extends javax.swing.JFrame {
      * For Ready processes, they are sorted by priority.
      */
     public void drawTable(){
-        populateTable(running);
-        Collections.sort(ready);
-        populateTable(ready);
-        populateTable(blocked);
+        if(running != null){
+            populateTable(running);
+            Collections.sort(ready);
+            populateTable(ready);
+            populateTable(blocked);
+        }
+        else{
+            Collections.sort(ready);
+            populateTable(ready);
+            populateTable(blocked);
+        }
     }
     
     /**
@@ -412,9 +481,29 @@ public class Dispatcher extends javax.swing.JFrame {
         ++pidCounter;
     }
     
+    /**
+     * Switches the running process to the process on the Ready list with the highest priority
+     * unless the ready list is empty, in which case it returns null.
+     * @return The new Running process.
+     */
     public Process contextSwitch(){
-        Process newRunning = ready.get(0);
-        return newRunning;
+        if (ready.size() > 0){
+            Process newRunning = new Process(ready.get(0));
+            newRunning.setStatus(ProcessStatus.RUNNING);
+            if(running != null){
+                running.setStatus(ProcessStatus.BLOCKED);
+                blocked.add(running);
+            }
+            ready.remove(0);
+            return newRunning;
+        }
+        else{
+            if(running != null){
+                running.setStatus(ProcessStatus.BLOCKED);
+                blocked.add(running);
+            }
+            return null;
+        }
     }
     
     /**
