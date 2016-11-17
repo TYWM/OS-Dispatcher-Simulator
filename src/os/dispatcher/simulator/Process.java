@@ -1,6 +1,7 @@
 package os.dispatcher.simulator;
 
 import java.util.Objects;
+import java.util.Comparator;
 
 /**
  *
@@ -23,9 +24,9 @@ public class Process implements Comparable{
     
     /**
      * Main constructor
-     * @param pid
-     * @param priority 
-     * @param status
+     * @param pid an integer value for the PID, should be handled by the program via a counter.
+     * @param priority an integer value for the priority.
+     * @param status a ProcessStatus enum type, ProcessStatus.READY, ProcessStatus.RUNNING, ProcessStatus.BLOCKED
      */
     public Process(int pid, int priority, ProcessStatus status){
         this.pid = pid;
@@ -51,9 +52,9 @@ public class Process implements Comparable{
 
     @Override
     public int compareTo(Object ob){
-        if(this.pid == ((Process)ob).pid)
+        if(this.priority == ((Process)ob).priority)
             return 0;
-        else if(this.pid < ((Process)ob).pid)
+        else if(this.priority < ((Process)ob).priority)
             return 1;
         else return -1;
     }
@@ -65,5 +66,17 @@ public class Process implements Comparable{
     public ProcessStatus getStatus() {return this.status;}
     
 
+}
+
+class PidSort implements Comparator<Process>{
+    
+    @Override
+    public int compare(Process p1, Process p2){
+        if(p1.getPid() == p2.getPid())
+            return 0;
+        else if(p1.getPid() < p2.getPid())
+            return 1;
+        else return -1;
+    }
 }
     

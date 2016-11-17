@@ -1,7 +1,8 @@
 package os.dispatcher.simulator;
 
 /**
- *
+ * A basic enumeration type to represent process state.
+ * A process is either Running, Ready, or Blocked.
  * @author Tyler McFaden
  */
 public enum ProcessStatus {
